@@ -1,0 +1,21 @@
+{% extends "users/base.html" %}
+
+{% block title %}
+<title>Agenda - Entrar o Registrarse</title>
+{% endblock %}
+
+{% block body %}
+{% if message %}
+    <div>
+        {{ message }}
+    </div>
+{% endif %}
+<form action="{% url 'login' %}" method="post">
+    {% csrf_token %}
+    <input name="username" type="text" placeholder="Usuario"/>
+    <input name="password" type="password" placeholder="Contraseña"/>
+    <input type="submit" value="Entrar"/>
+</form>
+
+<a href="{% url 'signup' %}">Registrarse</a>
+{% endblock %}
