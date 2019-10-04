@@ -2,35 +2,133 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.models import User
 #from django.contrib.auth.forms import UserCreationForm
-from .forms import CustomUserCreationForm, ContactCreationForm
+from .forms import CustomUserCreationForm, ContactForm, PhoneForm, EmailForm, AddressForm
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import Contacto
+from .models import Contact, Phone, Email, Address
 
 # Create your views here.
 def index(request):
     if not request.user.is_authenticated:
         return render(request, "users/login.html", {"message": None})
     if request.method == 'POST':
-        post_values = request.POST.copy()
-        post_values['user_id'] = request.user.id
-        contact = ContactCreationForm(post_values)
-        #        <!--{{ value|default_if_none=str(user.id) }}-->
+        contact = ContactForm(request.POST)
+
         if contact.is_valid():
-            contact.save()
+            contact.instance.user = request.user #User.objects.get(pk=request.user.pk)
+            c = contact.save()
             messages.success(request, '') # Contact successfully created
+
+            phone = PhoneForm(request.POST)
+            if phone.is_valid() and phone.instance.phone != '':
+                phone.instance.user = request.user
+                phone.instance.contact = c #Contact.objects.get(id=c.id)
+                phone.save()
+
+            else:
+                print("############################ Phone", phone.errors)
+
+            email = EmailForm(request.POST)
+            if email.is_valid() and email.instance.email != '': # and email.instance.email != '':
+                email.instance.user = request.user
+                email.instance.contact = c
+                email.save()
+            else:
+                print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Email", email.errors)
+
+            address = AddressForm(request.POST)
+            if address.is_valid() and address.instance.address != '': #and address.instance.address != '':
+                address.instance.user = request.user
+                address.instance.contact = c
+                address.save()
+            else:
+                print("&&&&&&&&&&&&&&&&&&&&&&&&&&&& Address", address.errors)
+
             return HttpResponseRedirect(reverse("index"))
     else:
-        contact = ContactCreationForm()
+        contact = ContactForm()
+        phone = PhoneForm()
+        email = EmailForm()
+        address = AddressForm()
+
     context = {
         "user": request.user,
-        "contactos": Contacto.objects.filter(user_id=request.user.id),
-        "form": contact
+        "contacts": Contact.objects.filter(user=request.user.id),
+        "phones": Phone.objects.filter(user=request.user.id),
+        "emails": Email.objects.filter(user=request.user.id),
+        "addresses": Address.objects.filter(user=request.user.id),
+        "form": contact,
+        "form2": phone,
+        "form3": email,
+        "form4": address
     }
 
     return render(request, "users/user.html", context)
+
+def contact_view(request, contact_id):
+    if not request.user.is_authenticated:
+        return render(request, "users/login.html", {"message": None})
+
+    contact = Contact.objects.get(id=contact_id)
+    contact_form = ContactForm(request.POST or None, instance=contact)
+
+    phone = PhoneForm(request.POST or None)
+    email = EmailForm(request.POST or None)
+    address = AddressForm(request.POST or None)
+
+    if contact_form.is_valid():
+        contact_form.save()
+
+        if phone.is_valid() and phone.instance.phone != '':
+            phone.instance.user = request.user
+            phone.instance.contact = contact #Contact.objects.get(id=c.id)
+            phone.save()
+        else:
+            print("############################ Phone", phone.errors)
+
+        if email.is_valid() and email.instance.email != '': # and email.instance.email != '':
+            email.instance.user = request.user
+            email.instance.contact = contact
+            email.save()
+        else:
+            print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Email", email.errors)
+
+        if address.is_valid() and address.instance.address != '': #and address.instance.address != '':
+            address.instance.user = request.user
+            address.instance.contact = contact
+            address.save()
+        else:
+            print("&&&&&&&&&&&&&&&&&&&&&&&&&&&& Address", address.errors)
+
+        return HttpResponseRedirect(reverse("contact", kwargs={"contact_id": contact_id}))
+
+    context = {
+        #"user": request.user,
+        "contact": contact, #Contact.objects.get(id=contact_id),
+        "phones": Phone.objects.filter(user=request.user.id, contact=contact),
+        "emails": Email.objects.filter(user=request.user.id, contact=contact),
+        "addresses": Address.objects.filter(user=request.user.id, contact=contact),
+        "form": contact_form,
+        "form2": phone,
+        "form3": email,
+        "form4": address
+    }
+
+    return render(request, "users/contact.html", context)
+
+def delete_view(request, contact_id):
+    if not request.user.is_authenticated:
+        return render(request, "users/login.html", {"message": None})
+
+    contact = Contact.objects.get(id=contact_id)
+
+    if request.method == 'POST':
+        contact.delete()
+        return HttpResponseRedirect(reverse("index"))
+
+    return render(request, "users/delete.html", {'contact': contact})
 
 def signup_view(request):
     if request.method == 'POST':
@@ -59,25 +157,3 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return render(request, "users/login.html", {"message": "Logged out."})
-
-def add_contact(request, user_id):
-    try:
-        pass
-    except Exception as e:
-        raise
-
-"""
-def add_contact(request, user_id):
-    try:
-        contact_id = int(request.POST["contact"])
-        flight = Flight.objects.get(pk=flight_id)
-        contact = Contacto.objects.get(pk=contact_id)
-    except KeyError:
-        return render(request, "flights/error.html", {"message": "No selection."})
-    except Flight.DoesNotExist:
-        return render(request, "flights/error.html", {"message": "No flight."})
-    except Passenger.DoesNotExist:
-        return render(request, "flights/error.html", {"message": "No passenger."})
-    passenger.flights.add(flight)
-    return HttpResponseRedirect(reverse("flight", args=(flight_id,)))
-"""

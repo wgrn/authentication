@@ -4,8 +4,9 @@ from django import forms
 from django.core.exceptions import ValidationError
 
 from django.db import models
+from django.forms import ModelForm
 
-from .models import Contacto
+from .models import Contact, Phone, Email, Address
 
 class CustomUserCreationForm(forms.Form):
     username   = forms.CharField(label='Usuario', min_length=4, max_length=25)
@@ -41,25 +42,45 @@ class CustomUserCreationForm(forms.Form):
         user = User.objects.create_user(
             self.cleaned_data['username'],
             self.cleaned_data['email'],
+            self.cleaned_data['first_name'],
             self.cleaned_data['password1']
         )
         return user
 
-class ContactCreationForm(forms.Form):
-    user_id = forms.IntegerField(widget = forms.HiddenInput(), required=False)
-    first_name = forms.CharField(label='Nombre', min_length=2, max_length=30)
-    last_name  = forms.CharField(label='Apellido', min_length=2, max_length=30, required=False)
-    phone = forms.CharField(label='Telefono', min_length=10, max_length=13, required=False)
-    email = forms.CharField(label='Email', min_length=10, max_length=30, required=False)
-    address = forms.CharField(label='Direccion', max_length=100, required=False)
+class ContactForm(ModelForm):
+    class Meta:
+        model = Contact
+        fields = ['group', 'first_name', 'last_name']
+        labels = {
+                   'group': 'Grupo',
+                   'first_name': 'Nombre',
+                   'last_name': 'Apellido'
+        }
+        exclude = ['user']
 
-    def save(self, commit=True):
-        contact = Contacto(user_id=self.cleaned_data['user_id'],
-                           first_name=self.cleaned_data['first_name'],
-                           last_name=self.cleaned_data['last_name'],
-                           phone=self.cleaned_data['phone'],
-                           email=self.cleaned_data['email'],
-                           address=self.cleaned_data['address'])
-        contact.save()
+class PhoneForm(ModelForm):
+    class Meta:
+        model = Phone
+        fields = ['user', 'contact', 'phone_label', 'phone']
+        widgets = {
+            'phone': forms.TextInput(attrs={'placeholder': 'Agregar Teléfono'})
+        }
+        exclude = ['user', 'contact']
 
-        return True
+class EmailForm(ModelForm):
+    class Meta:
+        model = Email
+        fields = ['email_label', 'email']
+        widgets = {
+            'email': forms.TextInput(attrs={'placeholder': 'Agregar Email'})
+        }
+        exclude = ['user', 'contact']
+
+class AddressForm(ModelForm):
+    class Meta:
+        model = Address
+        fields = ['address_label', 'address']
+        widgets = {
+            'address': forms.TextInput(attrs={'placeholder': 'Agregar Dirección'})
+        }
+        exclude = ['user', 'contact']
