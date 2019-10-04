@@ -1,23 +1,37 @@
 {% extends "users/base.html" %}
 
 {% block title %}
-    <title>Agenda - Mi cuenta</title>
+    <title>Agenda - Contacto</title>
 {% endblock %}
 
 {% block body %}
-<h1>Hola, {{ user.first_name }}</h1>
-<div>
-    <li>Logged in as: {{ user.username }}</li>
-    <li><a href="{% url 'logout' %}">Logout</a></li>
-</div>
+<h1>Editar Contacto: {{ contact }}</h1>
+
+<h3>
+    <a href="{% url 'index' %}">Regresar</a>
+</h3>
 
 <div>
-  <h3>Agregar Contacto</h3>
-  <form action="{% url 'index' %}" method="post" >
+
+  <h3>Editar Contacto</h3>
+
+  <form action="{% url 'contact' contact.id %}" method="post" >
       {% csrf_token %}
       <table>
 
-         {{ form.as_table }}
+
+         <tr>
+           <td></td>
+           <td>{{ form.group }}</td>
+         </tr>
+         <tr>
+           <td></td>
+           <td>{{ form.first_name | default_if_none:contact.first_name }}</td>
+         </tr>
+         <tr>
+           <td></td>
+           <td>{{ form.last_name | default_if_none:contact.last_name }}</td>
+         </tr>
 
          <tr>
            <td>{{ form2.phone_label }}</td>
@@ -37,7 +51,7 @@
           <tr>
              <td></td>
              <td>
-               <input type="submit" name="Agregar" value="Agregar" />
+               <input type="submit" name="Modificar" value="Modificar" />
              </td>
          </tr>
 
@@ -46,17 +60,15 @@
 </div>
 
 <div>
-  <h3>Contactos</h3>
   <table>
     <tr>
       <th></th>
       <th></th>
     </tr>
 
-    {% for contact in contacts %}
       <tr>
         <td>
-          <a href="{% url 'contact' contact.id %}">{{ contact }}</a>
+          {{ contact }}
         </td>
         <td></td>
       </tr>
@@ -84,10 +96,6 @@
           </tr>
         {% endif %}
       {% endfor %}
-
-    {% empty %}
-        <tr>No tienes contactos.</tr>
-    {% endfor %}
   </table>
 </div>
 

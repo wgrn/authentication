@@ -1,0 +1,30 @@
+{% extends "users/base.html" %}
+
+{% block title %}
+    <title>Agenda - Contacto</title>
+{% endblock %}
+
+{% block body %}
+<h1>
+  Editar Contacto: {{ contact }}
+</h1>
+
+<h3>
+    <a href="{% url 'index' %}">Regresar</a>
+</h3>
+
+<div>
+
+  <h3>
+    Quieres eliminar a {{ contact.first_name }} {{ contact.last_name }}
+    de tu lista de contactos ?
+  </h3>
+
+  <form action="" method="POST" >
+    {% csrf_token %}
+    <button type="submit" name="">Eliminar</button>
+  </form>
+
+</div>
+
+{% endblock %}

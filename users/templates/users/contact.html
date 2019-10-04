@@ -1,0 +1,93 @@
+{% extends "users/base.html" %}
+
+{% block title %}
+    <title>Agenda - Contacto</title>
+{% endblock %}
+
+{% block body %}
+<h1>
+  Editar Contacto: {{ contact }}
+  <a href="{% url 'delete' contact.id %}">Borrar</a>
+</h1>
+
+<h3>
+    <a href="{% url 'index' %}">Regresar</a>
+</h3>
+
+<div>
+
+  <h3>Editar Contacto</h3>
+
+  <form action="" method="POST" >
+      {% csrf_token %}
+      <table>
+        {{ form.as_table }}
+
+        <tr>
+          <td>{{ form2.phone_label }}</td>
+          <td>{{ form2.phone }}</td>
+        </tr>
+
+        <tr>
+          <td>{{ form3.email_label }}</td>
+          <td>{{ form3.email }}</td>
+        </tr>
+
+        <tr>
+          <td>{{ form4.address_label }}</td>
+          <td>{{ form4.address }}</td>
+        </tr>
+
+        <tr>
+          <td></td>
+          <td>
+            <button type="submit" name="">Editar</button>
+          </td>
+        </tr>
+      </table>
+
+  </form>
+
+</div>
+
+<div>
+  <table>
+    <tr>
+      <th></th>
+      <th></th>
+    </tr>
+
+      <tr>
+        <td>
+          {{ contact }}
+        </td>
+        <td></td>
+      </tr>
+
+      {% for phone in phones %}
+        {% if phone.contact == contact %}
+          <tr>
+            <td>{{ phone }}</td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+
+      {% for email in emails %}
+        {% if email.contact == contact %}
+          <tr>
+            <td>{{ email }}</td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+
+      {% for address in addresses %}
+        {% if address.contact == contact %}
+          <tr>
+            <td>{{ address }}</td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+  </table>
+</div>
+
+{% endblock %}
